@@ -1,0 +1,274 @@
+-
+  name: Install and Setup Icinga2
+  hosts: all
+  tasks:
+    - include_vars: mysql.vars.yml
+    - name: Install epel dependecy
+      become: yes
+      yum:
+        name: ["epel-release","centos-release-scl"]
+        state: present
+    - name: Install Icinga2 and remi repo
+      become: yes
+      yum:
+        name: ["https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm","http://rpms.remirepo.net/enterprise/remi-release-7.rpm"]
+        state: present
+    - name: Install Icinga2
+      become: yes
+      yum:
+        name: icinga2
+        state: present
+    - name: Start Icinga2
+      become: yes
+      service:
+        name: icinga2
+        state: started
+        enabled: true
+    - name: Install Icinga2 plugins
+      become: yes
+      yum:
+        name: nagios-plugins-all
+        state: present
+    - name: Restart Icinga2
+      become: yes
+      service:
+        name: icinga2
+        state: restarted
+    - name: Install SELinux Icinga2
+      become: yes
+      yum:
+        name: icinga2-selinux
+        state: present
+    - name: Install Icinga2 IDO MySQL
+      become: yes
+      yum:
+        name: icinga2-ido-mysql
+        state: present
+    - name: Install Mysql Client
+      become: yes
+      yum:
+        name: mariadb
+        state: present
+    - name: Install the Python MySQL Support Libraries
+      become: yes
+      yum: 
+        name: MySQL-python 
+        state: present
+    - name: Restart Icinga2
+      become: yes
+      service:
+        name: icinga2
+        state: restarted
+    - name: Install httpd 
+      become: yes
+      yum:
+        name: ["httpd"]
+        state: present
+    - name: Start httpd
+      become: yes
+      service:
+        name: httpd
+        state: started
+        enabled: true
+    - name: Setup icinga2 api
+      become: yes
+      command: icinga2 api setup
+    - name: Adding API User
+      become: yes
+      blockinfile:
+        path: /etc/icinga2/conf.d/api-users.conf
+        block: |
+          object ApiUser "icingaweb2" {
+          password = "{{ api_password }}"
+          permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
+          }
+    - name: enable IDO Mysql
+      become: yes
+      command: icinga2 feature enable ido-mysql
+    - name: ido-mysql.conf
+      become: yes
+      template:
+        src: templates/icingaweb/base/ido-mysql.conf
+        dest: /etc/icinga2/features-available/ido-mysql.conf
+        owner: icinga
+        group: icinga
+        mode: 0640
+    - name: Restart Icinga2
+      become: yes
+      service:
+        name: icinga2
+        state: restarted
+    - name: Install Icinga Web2
+      become: yes
+      yum:
+        name: ["rh-php73-php-mysqlnd","rh-php73-php-imagick","icingaweb2", "icingacli"]
+        state: present
+    - name: Start php-fpm
+      become: yes
+      service:
+        name: rh-php73-php-fpm
+        state: started
+        enabled: true
+    - name: Restart httpd
+      become: yes
+      service:
+        name: httpd
+        state: restarted
+    - name: Ensure group "icingaweb2" exists
+      group:
+        name: icingaweb2
+        state: present
+    - name: Add the user 'apache' to 'icingaweb2'
+      become: yes 
+      user:
+        name: apache
+        group: icingaweb2
+    - name: Change permissions
+      become: yes
+      file:
+        path: /etc/icingaweb2
+        owner: root
+        group: icingaweb2
+        mode: 0770
+        recurse: yes
+    # Setting Up IcingaWeb2
+    - name: Creates directory
+      become: yes
+      file:
+        path: /etc/icingaweb2/enabledModules
+        state: directory
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: Create symbolic link
+      become: yes
+      file:
+        src: "/usr/share/icingaweb2/modules/monitoring"
+        dest: "/etc/icingaweb2/enabledModules/monitoring"
+        state: link
+    - name: config.ini
+      become: yes
+      template:
+        src: templates/icingaweb/base/ini_files/config.ini
+        dest: /etc/icingaweb2/config.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: authentication.ini
+      become: yes
+      template:
+        src: templates/icingaweb/base/ini_files/authentication.ini
+        dest: /etc/icingaweb2/authentication.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: groups.ini
+      become: yes
+      template:
+        src: templates/icingaweb/base/ini_files/groups.ini
+        dest: /etc/icingaweb2/groups.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: resources.ini
+      become: yes
+      template:
+        src: templates/icingaweb/base/ini_files/resources.ini
+        dest: /etc/icingaweb2/resources.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: roles.ini
+      become: yes
+      template:
+        src: templates/icingaweb/base/ini_files/roles.ini
+        dest: /etc/icingaweb2/roles.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: Creates directory
+      become: yes
+      file:
+        path: /etc/icingaweb2/modules/monitoring
+        state: directory
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: monitoring backends.ini
+      become: yes
+      template:
+        src: templates/icingaweb/modules/monitoring/backends.ini
+        dest: /etc/icingaweb2/modules/monitoring/backends.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: monitoring commandtransports.ini
+      become: yes
+      template:
+        src: templates/icingaweb/modules/monitoring/commandtransports.ini
+        dest: /etc/icingaweb2/modules/monitoring/commandtransports.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: monitoring config.ini
+      become: yes
+      template:
+        src: templates/icingaweb/modules/monitoring/config.ini
+        dest: /etc/icingaweb2/modules/monitoring/config.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    ## Applying host,services,groups config from templates
+    - name: groups.conf
+      become: yes
+      template:
+        src: templates/icinga2/groups.conf
+        dest: /etc/icinga2/conf.d/groups.conf
+        owner: icinga
+        group: icinga
+        mode: 0640
+    - name: hosts.conf
+      become: yes
+      template:
+        src: templates/icinga2/hosts.conf
+        dest: /etc/icinga2/conf.d/hosts.conf
+        owner: icinga
+        group: icinga
+        mode: 0640
+    - name: notifications.conf
+      become: yes
+      template:
+        src: templates/icinga2/notifications.conf
+        dest: /etc/icinga2/conf.d/notifications.conf
+        owner: icinga
+        group: icinga
+        mode: 0640
+    - name: services.conf
+      become: yes
+      template:
+        src: templates/icinga2/services.conf
+        dest: /etc/icinga2/conf.d/services.conf
+        owner: icinga
+        group: icinga
+        mode: 0640
+    - name: templates.conf
+      become: yes
+      template:
+        src: templates/icinga2/templates.conf
+        dest: /etc/icinga2/conf.d/templates.conf
+        owner: icinga
+        group: icinga
+        mode: 0640
+    - name: users.conf
+      become: yes
+      template:
+        src: templates/icinga2/users.conf
+        dest: /etc/icinga2/conf.d/users.conf
+        owner: icinga
+        group: icinga
+        mode: 0640
+    - name: Restart Icinga2
+      become: yes
+      service:
+        name: icinga2
+        state: restarted

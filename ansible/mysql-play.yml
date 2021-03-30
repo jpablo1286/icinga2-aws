@@ -1,0 +1,65 @@
+-
+  name: Setup Database
+  hosts: all
+  tasks:
+    - include_vars: mysql.vars.yml
+    - name: Install the Python MySQL Support Libraries
+      become: yes
+      yum: 
+        name: MySQL-python 
+        state: present
+    - name: Create a new databases for 'icinga'
+      mysql_db:
+        name: "{{ item }}"
+        state: present
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql_password }}"
+        login_host: "{{ mysql_host }}"
+      with_items:
+        - "icinga"
+        - "icingaweb2"
+    - name: create icinga db user
+      mysql_user:
+        name: "{{ item }}"
+        host: "{{ mysql_subnet }}"
+        password: "{{ icinga_password }}"
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql_password }}"
+        login_host: "{{ mysql_host }}"
+        check_implicit_admin: yes
+        priv: "{{ item }}.*:ALL,GRANT"
+      with_items:
+        - "icinga"
+        - "icingaweb2"
+    - name: mysql.sql
+      become: yes
+      template:
+        src: templates/icingaweb/base/mysql.sql
+        dest: /tmp/mysql.sql
+        owner: ec2-user
+        group: ec2-user
+        mode: 0755
+    - name: Import icinga2 schema
+      mysql_db:
+        state: import
+        name: icinga
+        target: /tmp/mysql.sql
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql_password }}"
+        login_host: "{{ mysql_host }}"
+    - name: icingaweb2_base.sql
+      become: yes
+      template:
+        src: templates/icingaweb/base/icingaweb2_base.sql
+        dest: /tmp/icingaweb2_base.sql
+        owner: ec2-user
+        group: ec2-user
+        mode: 0755
+    - name: Import icingaweb2 schema
+      mysql_db:
+        state: import
+        name: icingaweb2
+        target: /tmp/icingaweb2_base.sql
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql_password }}"
+        login_host: "{{ mysql_host }}"
