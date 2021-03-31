@@ -3,16 +3,23 @@
   hosts: all
   tasks:
     - include_vars: mysql.vars.yml
-    - name: Install epel dependecy
+    - name: Enable EPEL
       become: yes
-      yum:
-        name: ["epel-release","centos-release-scl"]
-        state: present
+      command: yum-config-manager --enable epel rhel-server-rhscl-7-rpms remi rhel-7-server-optional-rpms centos-sclo-rh
     - name: Install Icinga2 and remi repo
       become: yes
       yum:
-        name: ["https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm","http://rpms.remirepo.net/enterprise/remi-release-7.rpm"]
+        name: ["https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm", 
+                "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm",
+                "http://mirror.centos.org/centos/7/extras/x86_64/Packages/centos-release-scl-rh-2-3.el7.centos.noarch.rpm",
+                "http://mirror.centos.org/centos/7/extras/x86_64/Packages/centos-release-scl-2-3.el7.centos.noarch.rpm"]
         state: present
+    - name: Fix repo definition
+      become: yes
+      command: sed -i -e 's/$releasever/7/g' /etc/yum.repos.d/ICINGA-release.repo
+    - name: Make cache
+      become: yes
+      command: yum makecache
     - name: Install Icinga2
       become: yes
       yum:
@@ -101,7 +108,7 @@
     - name: Install Icinga Web2
       become: yes
       yum:
-        name: ["rh-php73-php-mysqlnd","rh-php73-php-imagick","icingaweb2", "icingacli"]
+        name: ["icingaweb2", "icingacli"]
         state: present
     - name: Start php-fpm
       become: yes

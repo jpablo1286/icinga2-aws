@@ -95,7 +95,7 @@ CREATE TABLE `icingaweb_user` (
 
 LOCK TABLES `icingaweb_user` WRITE;
 /*!40000 ALTER TABLE `icingaweb_user` DISABLE KEYS */;
-INSERT INTO `icingaweb_user` VALUES ('admin',1,'$2y$10$XslCPzvsJmbB/zvqiJ4tHuHeZJjW23lLqFa9QbsvZqqpIgilOStVq','2021-03-17 22:55:31',NULL);
+INSERT INTO `icingaweb_user` VALUES ('admin',1,'$1$tf4Bcl4t$eSAN2J7q6l03n6ES.yfCc0','2021-03-17 22:55:31',NULL);
 /*!40000 ALTER TABLE `icingaweb_user` ENABLE KEYS */;
 UNLOCK TABLES;
 
