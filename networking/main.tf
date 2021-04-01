@@ -23,9 +23,9 @@ resource "aws_vpc" "icinga2_vpc" {
 }
 
 resource "aws_subnet" "icinga2_subnet_public" {
-  count                   = var.public_sn_count
+  count                   = var.icinga_sn_count
   vpc_id                  = aws_vpc.icinga2_vpc.id
-  cidr_block              = var.public_cidrs[count.index]
+  cidr_block              = var.icinga_cidrs[count.index]
   map_public_ip_on_launch = true
   availability_zone       = random_shuffle.az_list.result[count.index]
   tags = {
@@ -34,7 +34,7 @@ resource "aws_subnet" "icinga2_subnet_public" {
 }
 
 resource "aws_route_table_association" "icinga2_assoc" {
-  count          = var.public_sn_count
+  count          = var.icinga_sn_count
   subnet_id      = aws_subnet.icinga2_subnet_public.*.id[count.index]
   route_table_id = aws_route_table.icinga2_rt.id
 }

@@ -1,7 +1,7 @@
 resource "aws_lb" "icinga2_lb" {
   name = "icinga2-lb"
-  subnets = var.public_subnets
-  security_groups = [ var.public_sg ]
+  subnets = var.icinga_subnets
+  security_groups = [ var.icinga_sg ]
   idle_timeout = 400
 }
 

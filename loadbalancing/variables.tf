@@ -1,5 +1,5 @@
-variable "public_sg" {}
-variable "public_subnets" {}
+variable "icinga_sg" {}
+variable "icinga_subnets" {}
 variable "tg_port" {}
 variable "tg_protocol" {}
 variable "vpc_id" {}

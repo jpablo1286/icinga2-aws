@@ -10,10 +10,10 @@ output "db_security_group" {
   value = [aws_security_group.icinga2_sg["rds"].id]
 }
 
-output "public_sg" {
-  value = aws_security_group.icinga2_sg["public"].id
+output "icinga_sg" {
+  value = aws_security_group.icinga2_sg["icinga"].id
 }
 
-output "public_subnets" {
+output "icinga_subnets" {
   value = aws_subnet.icinga2_subnet_public.*.id
 }

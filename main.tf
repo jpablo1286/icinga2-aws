@@ -2,10 +2,10 @@ module "networking" {
   source = "./networking"
   vpc_cidr = local.vpc_cidr
   security_groups = local.security_groups
-  public_sn_count = 2
+  icinga_sn_count = 2
   private_sn_count = 3
   max_subnets = 20
-  public_cidrs = [for i in range(1,255,2): cidrsubnet(local.vpc_cidr,8,i)]
+  icinga_cidrs = [for i in range(1,255,2): cidrsubnet(local.vpc_cidr,8,i)]
   private_cidrs = [for i in range(2,255,2): cidrsubnet(local.vpc_cidr,8,i)]
   db_subnet_group = true
 }
@@ -26,8 +26,8 @@ module "database" {
 
 module "loadbalancing" {
   source = "./loadbalancing"
-  public_sg  = module.networking.public_sg
-  public_subnets = module.networking.public_subnets
+  icinga_sg  = module.networking.icinga_sg
+  icinga_subnets = module.networking.icinga_subnets
   vpc_id = module.networking.vpc_id
   tg_port = 80
   tg_protocol = "HTTP"
@@ -41,8 +41,8 @@ module "loadbalancing" {
 
 module "compute" {
   source = "./compute"
-  public_sg = module.networking.public_sg
-  public_subnets = module.networking.public_subnets
+  icinga_sg = module.networking.icinga_sg
+  icinga_subnets = module.networking.icinga_subnets
   instance_count = 1
   instance_type = "t3.micro"
   vol_size = 10

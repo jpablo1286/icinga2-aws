@@ -1,0 +1,3 @@
+mysql_subnet: 10.15.%.% # vpc_cidr for icinga master instance
+icinga_password: StrongPass # icinga password
+api_password: ApiStrongPass # icinga api password

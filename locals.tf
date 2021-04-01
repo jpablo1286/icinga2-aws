@@ -3,9 +3,9 @@ locals {
 }
 locals {
     security_groups = {
-        public = {
-            name = "public_sg"
-            description = "Public"
+        icinga = {
+            name = "icinga_sg"
+            description = "Icinga Access"
             ingress = {
                 ssh = {
                     from = 22

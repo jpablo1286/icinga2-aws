@@ -28,8 +28,8 @@ resource "aws_instance" "icinga2_node" {
       Name = "icinga2-node-${random_id.icinga2_node_id[count.index].dec}"
   }
   key_name = aws_key_pair.ssh_auth.id
-  vpc_security_group_ids = [var.public_sg]
-  subnet_id = var.public_subnets[count.index]
+  vpc_security_group_ids = [var.icinga_sg]
+  subnet_id = var.icinga_subnets[count.index]
   user_data = templatefile(var.user_data_path,{
       nodename = "icinga2-node-${random_id.icinga2_node_id[count.index].dec}"
   })

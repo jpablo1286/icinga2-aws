@@ -1,13 +1,13 @@
 variable "vpc_cidr" {
   type = string
 }
-variable "public_cidrs" {
+variable "icinga_cidrs" {
   type = list(any)
 }
 variable "private_cidrs" {
   type = list(any)
 }
-variable "public_sn_count" {
+variable "icinga_sn_count" {
   type = number
 }
 variable "private_sn_count" {
