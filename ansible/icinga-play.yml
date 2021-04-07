@@ -87,7 +87,11 @@
         block: |
           object ApiUser "icingaweb2" {
           password = "{{ api_password }}"
-          permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
+          permissions = [ "*" ]
+          }
+          object ApiUser "director" {
+          password = "{{ api_password }}"
+          permissions = [ "*" ]
           }
     - name: enable IDO Mysql
       become: yes

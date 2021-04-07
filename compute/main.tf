@@ -57,7 +57,7 @@ resource "aws_instance" "icinga2_node" {
 
   provisioner "local-exec" {
     working_dir = "${path.cwd}/ansible/"
-    command = "export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -u ec2-user --key-file ${path.cwd}/${var.priv_key_path} --extra-vars 'mysql_user=${var.dbuser} mysql_password=${var.dbpassword} mysql_host=${var.dbhost}' -i ${self.public_ip}, main.yml"
+    command = "export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -u ec2-user --key-file ${path.cwd}/${var.priv_key_path} --extra-vars 'icinga_name=icinga2-node-${random_id.icinga2_node_id[count.index].dec} mysql_user=${var.dbuser} mysql_password=${var.dbpassword} mysql_host=${var.dbhost}' -i ${self.public_ip}, main.yml"
   }
 
 }

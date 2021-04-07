@@ -1,0 +1,89 @@
+-
+  name: Install and Setup Icinga2 Director
+  hosts: all
+  tasks:
+    - include_vars: mysql.vars.yml
+    - name: Install Dependecies
+      become: yes
+      yum:
+        name: ["git","rh-php73-php-curl","rh-php73-php-pcntl","rh-php73-php-posix","rh-php73-php-sockets","rh-php73-php-xml","rh-php73-php-zip"]
+        state: present
+    - name: Create a new database for 'director module'
+      mysql_db:
+        name: "director"
+        state: present
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql_password }}"
+        login_host: "{{ mysql_host }}"
+    - name: create director db user
+      mysql_user:
+        name: "director"
+        host: "{{ mysql_subnet }}"
+        password: "{{ icinga_password }}"
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql_password }}"
+        login_host: "{{ mysql_host }}"
+        check_implicit_admin: yes
+        priv: "director.*:ALL,GRANT"
+    - name: Create Director folder
+      become: yes
+      file:
+        path:  /etc/icingaweb2/modules/director
+        state: directory
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: copy icinga modules install script
+      become: yes
+      template:
+        src: templates/icinga-director/icingaweb2-module.sh
+        dest: /tmp/icingaweb2-module.sh
+        owner: root
+        group: icingaweb2
+        mode: 0775
+    - name: execute script for install icinga modules
+      become: yes
+      command: /tmp/icingaweb2-module.sh
+    - name: copy config.ini
+      become: yes
+      template:
+        src: templates/icinga-director/config.ini
+        dest: /etc/icingaweb2/modules/director/config.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: copy kickstart
+      become: yes
+      template:
+        src: templates/icinga-director/kickstart.ini
+        dest: /etc/icingaweb2/modules/director/kickstart.ini
+        owner: root
+        group: icingaweb2
+        mode: 0770
+    - name: enable module
+      become: yes
+      command: icingacli module enable director
+    - name: run migrations
+      become: yes
+      command: icingacli director migration run --verbose ; icingacli director migration pending --verbose
+    - name: run kickstart
+      become: yes
+      command: icingacli director kickstart run ; icingacli director kickstart required
+    - name: copy icinga daemon install script
+      become: yes
+      template:
+        src: templates/icinga-director/icingadirector-daemon.sh
+        dest: /tmp/icingadirector-daemon.sh
+        owner: root
+        group: icingaweb2
+        mode: 0775
+    - name: install director daemon
+      become: yes
+      command: /tmp/icingadirector-daemon.sh
+    - name: Start Icinga Director Daemon
+      become: yes
+      service:
+        name: icinga-director.service
+        state: started
+        enabled: true
+    
